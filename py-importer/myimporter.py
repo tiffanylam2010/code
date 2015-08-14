@@ -237,22 +237,49 @@ sys.path_hooks.insert(0, CLoader)
 
 if __name__ == '__main__':
 	# sys.path.append("src.myzip")
-
-	import a
-	print a
-	a.show()
-	print 
-
-	import pkg
-	print pkg
-	pkg.show()
-	print 
 	
-	import pkg.subpkg
-	print pkg.subpkg
-	pkg.subpkg.show()
-	print 
+	# 临时用base64做一下所谓的加密(注意:base64不是加密!实际应用中不要用)
+	import base64
+	def encode(s):
+		return base64.b64encode(s)
+	def decode(s):
+		return base64.b64decode(s)
+	
+	def create_myzip(zipfilename):
+		"""
+		生成一个src.myzip的zip文件:
+		a.py
+		pkg/
+			__init__.py
+			subpkg/
+				__init__.py
+		"""
+		zipobj = zipfile.ZipFile(zipfilename, 'w')
+		zipobj.writestr("a.py", encode("def show():\n\tprint 'show in a'"))
+		zipobj.writestr("pkg/__init__.py", encode("def show():\n\tprint 'show in pkg.__init__'"))
+		zipobj.writestr("pkg/subpkg/__init__.py", encode("def show():\n\tprint 'show in pkg/subpkg/__init__'"))
+		zipobj.close()
+		
+	# 在当前目录下创建一个src.myzip文件;
+	# 由于CFinder会自动把src.myzip加入sys.path中
+	# 所以会触发path_hooks的CLoader来解析src.myzip
+	create_myzip("src.myzip")
+	
+	def do_decrypt(cls, s):
+		return decode(s)
+	CLoader.do_decrypt = do_decrypt
+	
+	def test_import(name):
+		module = __import__(name)
+		print module
+		module.show()
+		print
+		print "reload(%s):"%name
+		print reload(module)
+		print "-"*80
+		
+	
+	test_import("a")
+	test_import("pkg")
+	test_import("pkg.subpkg")
 
-	import pkg.subpkg.a
-	print pkg.subpkg.a
-	pkg.subpkg.a.show()
