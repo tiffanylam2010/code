@@ -93,13 +93,17 @@ class CFinder(object):
 		if path is None:		
 			# 把sys.path下的所有目录, 如果存在".myzip"结尾的,就主动把它加入sys.path中;
 			for p in sys.path[:]:
-				if os.path.isdir(p):
-					for name in os.listdir(p):
-						if name.endswith(CLoader.FILE_POSTFIX):
-							filename = os.path.abspath( os.path.join(p, name) )
-							if filename not in sys.path:
-								debug("CFinder sys.path.insert(0, %r)"%filename)
-								sys.path.insert(0, filename )
+				if not os.path.isdir(p): 
+					continue
+				# p is dir
+				for name in os.listdir(p):
+					if not name.endswith(CLoader.FILE_POSTFIX): 
+						continue
+					# name.endswith(CLoader.FILE_POSTFIX)
+					filename = os.path.abspath( os.path.join(p, name) )
+					if filename not in sys.path:
+						debug("CFinder sys.path.insert(0, %r)"%filename)
+						sys.path.insert(0, filename )
 
 		return None
 
