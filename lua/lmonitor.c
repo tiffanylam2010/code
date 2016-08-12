@@ -230,6 +230,9 @@ void record_ret(struct status *s, lua_Debug *ar) {
     int flag;
     struct running_item * item;
 
+    if (s->running_idx<0){
+        return ;
+    }
     item = &(s->running_list[s->running_idx]);
     delta = get_delta(item->total_start_time);
     flag = TOTAL_TIME;
@@ -290,21 +293,17 @@ lshowret(lua_State *L){
     return 1;
 }
 
-/*static int*/
-/*lstart(lua_State *L){*/
-    /*printf("start1>>>\n");*/
-	/*lua_sethook(L, monitor_detailreport, LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE, 0);*/
-    /*printf("start2>>>\n");*/
-    /*return 0;*/
-/*}*/
+static int
+lstart(lua_State *L){
+    lua_sethook(L, monitor_detailreport, LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE, 0);
+    return 0;
+}
 
-/*static int*/
-/*lstop(lua_State *L){*/
-    /*printf("stop1>>>\n");*/
-	/*lua_sethook(L, NULL, 0, 0);*/
-    /*printf("stop2>>>\n");*/
-    /*return 0;*/
-/*}*/
+static int
+lstop(lua_State *L){
+    lua_sethook(L, NULL, 0, 0);
+    return 0;
+}
 
 int
 luaopen_timemonitor(lua_State *L) {
@@ -314,9 +313,9 @@ luaopen_timemonitor(lua_State *L) {
 	luaL_checkversion(L);
 	luaL_Reg l[] = {
 		{ "detailreport", ldetailreport },
-		/*{ "start", lstart},*/
-		/*{ "stop", lstop},*/
-		{ "showret", lshowret},
+        { "start", lstart},
+        { "stop", lstop},
+        { "showret", lshowret},
 		{ NULL, NULL },
 	};
 	luaL_newlib(L,l);

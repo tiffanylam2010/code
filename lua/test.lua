@@ -26,9 +26,12 @@ local function test(n, a)
 	return test(n-1)
 end
 
---print(monitor.depth(test, 2))
---print(monitor.depth(8, test, 10))
---print(monitor.report(test, 2))
-monitor.detailreport(test, 2, 'aaa')
-monitor.detailreport(test, 3, 'aaa')
+--monitor.detailreport(test, 2, 'aaa')
+--monitor.detailreport(test, 3, 'aaa')
+
+monitor.start()
+test(2)
+test(3)
+foo()
+monitor.stop()
 print(monitor.showret())
