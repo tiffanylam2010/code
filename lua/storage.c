@@ -127,8 +127,7 @@ int _string2id(struct Storage *st, const char* name){
                 // 遇到空的还没找到,说明不存在
                 size = strlen(name)+1;
                 st->strlist[id] = (char*)malloc(size);
-                memcpy(st->strlist[id], name, size-1);
-                *(st->strlist[id] + size) = '\0';
+                memcpy(st->strlist[id], name, size);
 
                 // 放入共享内存
                 _db_put(st->str_db, (void*)(&id), SIZEOF_INT);
@@ -196,7 +195,7 @@ void load(int evt_dbname, int str_dbname){
 
 void _remove_shm(int key){
     int shmid = shmget(key, 0, 0);
-    if(shmid>0){
+    if(shmid>=0){
         shmctl(shmid, IPC_RMID, NULL);
     }
 }

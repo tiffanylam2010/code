@@ -27,7 +27,7 @@ local function test(n, a)
 	return test(n-1)
 end
 
-profile.init()
-profile.profile(test, 2)
-profile.profile(test, 3)
+--profile.init()
+--profile.profile(test, 2)
+--profile.profile(test, 3)
 profile.dump_stats()
