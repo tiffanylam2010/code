@@ -1,15 +1,18 @@
 local profile = require "cpu_profile"
-local mod = require "mod"
 
 local function  bar()
     local k = 0
     for i=1, 10000 do
         k = i*i
+        for j=1, 1000 do
+            local v = j*k
+        end
     end
     return
 end
 local function foo()
-    bar()
+    print("foo")
+    return bar()
 end
 
 
@@ -19,15 +22,13 @@ local function test(n, a)
 	end
 	for i=1,n do
 	end
-	cb = foo
-    mod.bar()
-    cb()
-	for i=1,n do
-	end
+    foo()
+    bar()
+    bar()
 	return test(n-1)
 end
 
 profile.init()
-profile.profile(test, 2)
 profile.profile(test, 3)
-profile.dump_stats()
+profile.profile(test, 5)
+--profile.dump_stats()

@@ -9,11 +9,13 @@
 
 #define NANOSEC 1000000000
 
+// 共享内存的名字
 #define EVT_SHMKEY 10123
-#define NAME_SHMKEY 10124
+#define STR_SHMKEY 10124
 
+// 共享内存的大小
 #define EVT_SHMSIZE 1024*1024*1024
-#define NAME_SHMSIZE  1024*1024
+#define STR_SHMSIZE  1024*1024
 
 static struct Storage* G=NULL;
 
@@ -37,8 +39,8 @@ static void monitor(lua_State *L, lua_Debug *ar) {
 
 static int init(lua_State *L){
     if (G == NULL) {
-        remove_records(EVT_SHMKEY, NAME_SHMKEY);
-        G = create(EVT_SHMKEY, EVT_SHMSIZE, NAME_SHMKEY, NAME_SHMSIZE);
+        remove_records(EVT_SHMKEY, STR_SHMKEY);
+        G = create(EVT_SHMKEY, EVT_SHMSIZE, STR_SHMKEY, STR_SHMSIZE);
     }
     return 0;
 }
@@ -54,7 +56,7 @@ static int profile(lua_State *L) {
 }
 
 static int dump_stats(lua_State *L) {
-    load(EVT_SHMKEY, NAME_SHMKEY);
+    load(EVT_SHMKEY, STR_SHMKEY);
 
 }
 int luaopen_cpu_profile(lua_State *L) {

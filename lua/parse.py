@@ -1,6 +1,9 @@
 # coding:utf8
 import ctypes
-import pprint
+import sys
+
+EVT_SHMKEY = 10123
+STR_SHMKEY = 10124
 
 EVENT_RET = 1 
 EVENT_CALL = 0 
@@ -32,9 +35,8 @@ Lib.read_record.argtypes = [
         ]
 Lib.read_record.restype = ctypes.c_int
 
-def load(evt_shmkey, str_shmkey):
-    st = Lib.open(10123,10124)
-    st = Lib.open(evt_shmkey,str_shmkey)
+def load():
+    st = Lib.open(EVT_SHMKEY,STR_SHMKEY)
 
     while True:
         filename = ctypes.create_string_buffer("NULL", 256)
@@ -46,15 +48,14 @@ def load(evt_shmkey, str_shmkey):
         if(ret==0):
             break
         else:
-            # print("nanosec:%s event:%s file:%s line:%s func:%s"%(nanosec.value, event.value, filename.value, line.value, funcname.value))
             yield (nanosec.value, event.value, filename.value, line.value, funcname.value)
                 
-def parse(evt_shmkey, str_shmkey, output_file=None):
+def parse(output_file=None):
     parser = Parser()
-    for nanosec, event, filename, line, funcname in load(evt_shmkey, str_shmkey):
-        print("nanosec:%s event:%s file:%s line:%s func:%s"%(nanosec, event, filename, line, funcname))
+    for nanosec, event, filename, line, funcname in load():
+        # print("nanosec:%s event:%s file:%s line:%s func:%s"%(nanosec, event, filename, line, funcname))
         parser.add_record(nanosec, event, filename, line, funcname)
-    #parser.to_csv(output_file)
+    parser.dump_output(output_file)
 
 
 class StackInfo(object):
@@ -90,23 +91,77 @@ class ResultInfo(object):
         self.call_count = 0
         self.caller_map = {}
 
-    def __repr__(self):
-        s = "file:%s line:%s func:%s total:%.5f internal:%.5f count:%s"\
-                %(self.filename, self.line, self.funcname,
-                        self.runtime_total*1.0/NANOSEC, self.runtime_internal*1.0/NANOSEC, self.call_count)
-
-        pprint.pprint(self.caller_map)
-        return s
-
 class Parser(object):
     def __init__(self):
         self.stack = []
         self.result = {}
+        self.profile_time = 0
 
-    def show(self):
-        print("="*80)
+    def sort_result(self):
+        retlist = self.result.values()
+
+        def _sort(a,b):
+            if a.runtime_internal > b.runtime_internal:
+                return -1
+            elif a.runtime_internal == b.runtime_internal:
+                return 0
+            else:
+                return 1
+        retlist.sort(_sort)
+        return retlist
+
+    def dump_output(self, filename):
+        retlist = self.sort_result()
+
+        sumtime = 0
         for id, info in self.result.iteritems():
-            print(info)
+            sumtime += info.runtime_internal
+
+        line = ["count", "self_time", "%self_time","total_time", "function"]
+        linelist = [line,]
+        for info in retlist:
+            info.s_call_count = "%s"%info.call_count 
+            info.s_self_time = "%.3f"%(info.runtime_internal*1.0/NANOSEC)
+            info.s_self_time_percent = "%.2f%%"%(info.runtime_internal*100.0/sumtime)
+            info.s_total_time = "%.3f"%(info.runtime_total*1.0/NANOSEC)
+            info.s_name = "%s:%s:%s"%(info.filename,info.line, info.funcname)
+
+            line = [
+                    info.s_call_count,
+                    info.s_self_time,
+                    info.s_self_time_percent,
+                    info.s_total_time,
+                    info.s_name,
+                    ]
+            linelist.append(line)
+
+        # save to file
+        if filename:
+            fd = open(filename, "w")
+        else:
+            fd = sys.stdout
+        fd.write("total profile_time: %.3f sec\n\n"%(self.profile_time*1.0/NANOSEC))
+        for line in linelist:
+            fd.write("%10s %10s %10s %10s %s\n"%tuple(line))
+        fd.flush()
+        if filename:
+            fd.close()
+
+    def dump_to_graph(self, graphname):
+        import pygraphviz
+        g = pygraphviz.AGraph(directed=True)
+        for id, info in self.result.iteritems():
+            callee = "%s(%s)"%(info.s_name, info.s_self_time_percent)
+            for k, v in info.caller_map.iteritems():
+                value = self.result[k]
+                caller = "%s(%s)"%(value.s_name, value.s_self_time_percent)
+                label = "%s"%v["cnt"]
+                g.add_edge(caller, callee, label=label)
+
+        g.layout('dot')
+        g.draw(graphname)
+
+
 
     def add_record(self, nanosec, event, filename, line, funcname):
         info = StackInfo(nanosec, event, filename, line, funcname)
@@ -165,8 +220,9 @@ class Parser(object):
 
             if last_info.event == EVENT_TAILCALL:
                 self.__on_ret(caller.id, now)
-
+        else:
+            self.profile_time += delta_total
 
 if __name__ == '__main__':
-    parse(10123, 10124)
+    parse()
 

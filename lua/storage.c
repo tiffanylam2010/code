@@ -1,24 +1,10 @@
 #include "storage.h"
 /*
  *
- * 一块共享内存放:time(unsigned long),event(char),filename(int),line(int),funcname(int)
- * 另一块共享内存放: id(int)size(char)name(char*size)
- *
- * 提供api:
- *      G= create(key1,size1, key2, size2)
- *      record(G,event,filename,line,funcname)
- *
- *      G=attach(key1, key2)
- *      read(G,value)
- *
- *      remove_records(key1, key2)
+ * 一块共享内存放:time(unsigned long),event(int),filename(int),line(int),funcname(int)
+ * 另一块共享内存放: id(int)size_of_name(int)name(char*size)
  *
 */
-
-
-// num(int);id(int);strlen(int);str;...
-
-
 
 void* _shm_open(int key, int size){
     int mid = 0;
