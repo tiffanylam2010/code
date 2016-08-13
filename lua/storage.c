@@ -230,10 +230,10 @@ int read_record(struct Storage* st, unsigned long* nanosec, int* event, char* fi
         *line = *((int*)_db_get(st->evt_db, SIZEOF_INT));
         func_id = *((int*)_db_get(st->evt_db, SIZEOF_INT));
         if(file_id>=0){
-            memcpy(filename, st->strlist[file_id], sizeof(st->strlist[file_id]));
+            memcpy(filename, st->strlist[file_id], sizeof(st->strlist[file_id])+1);
         }
         if(func_id>=0){
-            memcpy(funcname, st->strlist[func_id], sizeof(st->strlist[func_id]));
+            memcpy(funcname, st->strlist[func_id], sizeof(st->strlist[func_id])+1);
         }
         
         st->left -= 1;

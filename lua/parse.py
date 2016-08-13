@@ -46,7 +46,7 @@ def load(evt_shmkey, str_shmkey):
         if(ret==0):
             break
         else:
-            #print("nanosec:%s event:%s file:%s line:%s func:%s"%(nanosec.value, event.value, filename.value, line.value, funcname.value))
+            # print("nanosec:%s event:%s file:%s line:%s func:%s"%(nanosec.value, event.value, filename.value, line.value, funcname.value))
             yield (nanosec.value, event.value, filename.value, line.value, funcname.value)
                 
 def parse(evt_shmkey, str_shmkey, output_file=None):
@@ -55,10 +55,6 @@ def parse(evt_shmkey, str_shmkey, output_file=None):
         print("nanosec:%s event:%s file:%s line:%s func:%s"%(nanosec, event, filename, line, funcname))
         parser.add_record(nanosec, event, filename, line, funcname)
     #parser.to_csv(output_file)
-
-    print("===============================================")
-    parser.show()
-
 
 
 class StackInfo(object):
@@ -143,12 +139,10 @@ class Parser(object):
             delta = info.nanosec - caller.last_nanosec
             self.result[caller.id].runtime_internal += delta
 
-        print("stack push:",len(self.stack), info)
         self.stack.append(info)
 
     def __on_ret(self, id, now):
         last_info = self.stack.pop(-1)
-        print("stack pop :",len(self.stack), last_info)   
         assert(last_info.id == id)
 
         ret = self.result[id]
