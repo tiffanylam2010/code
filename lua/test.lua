@@ -1,4 +1,4 @@
-local monitor = require "timemonitor"
+local monitor = require "time_monitor"
 local mod = require "mod"
 
 local function  bar()
@@ -19,19 +19,19 @@ local function test(n, a)
 	end
 	for i=1,n do
 	end
-	foo()
+	cb = foo
     mod.bar()
+    cb()
 	for i=1,n do
 	end
 	return test(n-1)
 end
 
---monitor.detailreport(test, 2, 'aaa')
---monitor.detailreport(test, 3, 'aaa')
-
-monitor.start()
-test(2)
-test(3)
-foo()
-monitor.stop()
+monitor.detailreport(test, 2, 'aaa')
+monitor.detailreport(test, 3, 'aaa')
 print(monitor.showret())
+
+--monitor.start()
+--test(2)
+--monitor.stop()
+--print(monitor.showret())
