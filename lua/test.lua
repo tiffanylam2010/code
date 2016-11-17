@@ -1,4 +1,4 @@
-local monitor = require "time_monitor"
+local profile = require "cpu_profile"
 local mod = require "mod"
 
 local function  bar()
@@ -27,11 +27,7 @@ local function test(n, a)
 	return test(n-1)
 end
 
-monitor.detailreport(test, 2, 'aaa')
-monitor.detailreport(test, 3, 'aaa')
-print(monitor.showret())
-
---monitor.start()
---test(2)
---monitor.stop()
---print(monitor.showret())
+profile.init()
+profile.profile(test, 2)
+profile.profile(test, 3)
+profile.dump_stats()
